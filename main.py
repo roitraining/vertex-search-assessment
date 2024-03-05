@@ -12,9 +12,8 @@ from google.cloud import discoveryengine_v1 as discoveryengine
 # Set the DATA_STORE_ID and PROJECT_ID variables for your project
 ####################################################################################
 LOCATION = "global"
-DATA_STORE_ID = "python-programming-data-st_1709560381748"
-PROJECT_ID = "vertext-ai-dar"
-
+DATA_STORE_ID = "your-data-store-id-here"
+PROJECT_ID = "your-project-id-here"
 
 app = Flask(__name__)
 
@@ -35,14 +34,6 @@ with open('config.yaml') as f:
 # Read application variables from the config fle
 TITLE = get_config_value(config, 'app', 'title', 'Ask Google')
 SUBTITLE = get_config_value(config, 'app', 'subtitle', 'Your friendly Bot')
-CONTEXT = get_config_value(config, 'palm', 'context',
-                           'You are a bot who can answer all sorts of questions')
-BOTNAME = get_config_value(config, 'palm', 'botname', 'Google')
-TEMPERATURE = get_config_value(config, 'palm', 'temperature', 0.8)
-MAX_OUTPUT_TOKENS = get_config_value(config, 'palm', 'max_output_tokens', 256)
-TOP_P = get_config_value(config, 'palm', 'top_p', 0.8)
-TOP_K = get_config_value(config, 'palm', 'top_k', 40)
-
 
 # The Home page route
 @app.route("/", methods=['POST', 'GET'])
@@ -60,15 +51,17 @@ def main():
         search_query = request.form['input']
 
         # Search the Data Storw passing in the user's question
+        # You need to implement the search_data_store function. See below.
         response = search_data_store(PROJECT_ID, LOCATION, DATA_STORE_ID, search_query)
 
         # The Response needs formatted to be displayed in the HTML template
+        # You need to implement the format_response function. See below
         responses = format_response(response)
 
         
     # Display the home page with the required variables set
     model = {"title": TITLE, "subtitle": SUBTITLE,
-             "botname": BOTNAME, "input": search_query, 
+             "input": search_query, 
              "responses": responses}
     return render_template('index.html', model=model)
 
