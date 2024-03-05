@@ -8,17 +8,25 @@
     </div>
 </div>
 <div class="container">
-    <div id="responses" class="alert alert-success" role="alert">
-       {{model.message}}
-    </div>
-
+    <div>
     <form method="POST">
     <div class="form-group">
-        <label for="input">Ask {{model.botname}}:</label>
+        <h2><label for="input">Python search:</label></h2>
         <input type="text" value="{{model.input}}" id="input" name="input" class="form-control" />
     </div>
     <div><input type="submit" class="btn btn-primary"></div>
     </form>
+    </div>
+
+    <div class="card-container">
+        {% for item in model.responses %}
+            <div class="card">
+                <h3>{{ item.title|safe }}</h3>
+                <p>{{ item.snippet|safe }}</p>
+                <a href="{{ item.url }}" target="_blank">{{ item.url }}</a>
+            </div>
+        {% endfor %}
+    </div>
 
 </div>
 {% endblock %}

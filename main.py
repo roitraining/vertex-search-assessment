@@ -1,8 +1,17 @@
 from flask import Flask, render_template, request
+from markupsafe import escape
 import os
 import yaml
 import vertexai
-from vertexai.language_models import TextGenerationModel
+from typing import List
+
+from google.api_core.client_options import ClientOptions
+from google.cloud import discoveryengine_v1 as discoveryengine
+
+LOCATION = "global"
+DATA_STORE_ID = "python-programming-data-st_1709560381748"
+PROJECT_ID = "vertext-ai-dar"
+
 
 app = Flask(__name__)
 
@@ -35,51 +44,102 @@ TOP_K = get_config_value(config, 'palm', 'top_k', 40)
 # The Home page route
 @app.route("/", methods=['POST', 'GET'])
 def main():
+    responses = []
 
     # The user clicked on a link to the Home page
     # They haven't yet submitted the form
     if request.method == 'GET':
-        question = ""
-        answer = "Hi, I'm FreshBot, what can I do for you?"
+        search_query = ""
 
     # The user asked a question and submitted the form
     # The request.method would equal 'POST'
     else: 
-        question = request.form['input']
+        search_query = request.form['input']
 
         # Get the data to answer the question that 
         # most likely matches the question based on the embeddings
-        data = search_vector_database(question)
+        response = search_data_store(PROJECT_ID, LOCATION, DATA_STORE_ID, search_query)
+        responses = format_response(response)
 
-        # Ask Gemini to answer the question using the data 
-        # from the database
-        answer = ask_gemini(question, data)
         
     # Display the home page with the required variables set
     model = {"title": TITLE, "subtitle": SUBTITLE,
-             "botname": BOTNAME, "message": answer, "input": question}
+             "botname": BOTNAME, "input": search_query, 
+             "responses": responses}
     return render_template('index.html', model=model)
 
 
-def search_vector_database(question):
+def search_data_store(
+    project_id: str,
+    location: str,
+    data_store_id: str,
+    search_query: str,
+) -> List[discoveryengine.SearchResponse]:
 
-    # 1. Convert the question into an embedding
-    # 2. Search the Vector database for the 5 closest embeddings to the user's question
-    # 3. Get the IDs for the five embeddings that are returned
-    # 4. Get the five documents from Firestore that match the IDs
-    # 5. Concatenate the documents into a single string and return it
+    client_options = (
+        ClientOptions(api_endpoint=f"{location}-discoveryengine.googleapis.com")
+        if location != "global"
+        else None
+    )
 
-    data = ""
-    return data
+    # Create a client
+    client = discoveryengine.SearchServiceClient(client_options=client_options)
 
+    serving_config = client.serving_config_path(
+        project=project_id,
+        location=location,
+        data_store=data_store_id,
+        serving_config="default_config",
+    )
 
-def ask_gemini(question, data):
-    # You will need to change the code below to ask Gemni to
-    # answer the user's question based on the data retrieved
-    # from their search
-    response = "Not implemented!"
+    content_search_spec = discoveryengine.SearchRequest.ContentSearchSpec(
+        snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(
+            return_snippet=True
+        ),
+        summary_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec(
+            summary_result_count=5,
+            include_citations=True,
+            ignore_adversarial_query=True,
+            ignore_non_summary_seeking_query=True,
+        ),
+    )
+
+    request = discoveryengine.SearchRequest(
+        serving_config=serving_config,
+        query=search_query,
+        page_size=10,
+        content_search_spec=content_search_spec,
+        query_expansion_spec=discoveryengine.SearchRequest.QueryExpansionSpec(
+            condition=discoveryengine.SearchRequest.QueryExpansionSpec.Condition.AUTO,
+        ),
+        spell_correction_spec=discoveryengine.SearchRequest.SpellCorrectionSpec(
+            mode=discoveryengine.SearchRequest.SpellCorrectionSpec.Mode.AUTO
+        ),
+    )
+
+    response = client.search(request)
+    #print(response)
+
     return response
 
+def format_response(response):
+    results = []
+    for result in response.results:
+        entry = {
+            "title": result.document.derived_struct_data["htmlTitle"], 
+            "snippet": result.document.derived_struct_data["snippets"][0]["htmlSnippet"],
+            "url": result.document.derived_struct_data["formattedUrl"]
+        }
+        results.append(entry)
+    
+    return results
+
+
+        
+        
+        
+
+    return tmp
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
