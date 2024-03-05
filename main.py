@@ -8,6 +8,9 @@ from typing import List
 from google.api_core.client_options import ClientOptions
 from google.cloud import discoveryengine_v1 as discoveryengine
 
+####################################################################################
+# Set the DATA_STORE_ID and PROJECT_ID variables for your project
+####################################################################################
 LOCATION = "global"
 DATA_STORE_ID = "python-programming-data-st_1709560381748"
 PROJECT_ID = "vertext-ai-dar"
@@ -56,9 +59,10 @@ def main():
     else: 
         search_query = request.form['input']
 
-        # Get the data to answer the question that 
-        # most likely matches the question based on the embeddings
+        # Search the Data Storw passing in the user's question
         response = search_data_store(PROJECT_ID, LOCATION, DATA_STORE_ID, search_query)
+
+        # The Response needs formatted to be displayed in the HTML template
         responses = format_response(response)
 
         
@@ -68,7 +72,12 @@ def main():
              "responses": responses}
     return render_template('index.html', model=model)
 
-
+####################################################################################
+#
+# See the following URL for implementing this function
+# https://cloud.google.com/generative-ai-app-builder/docs/preview-search-results#genappbuilder_search-python
+#
+####################################################################################
 def search_data_store(
     project_id: str,
     location: str,
@@ -122,6 +131,20 @@ def search_data_store(
 
     return response
 
+
+####################################################################################
+#
+# The discoveryengine.SearchResponse is Documented here:
+# https://cloud.google.com/python/docs/reference/discoveryengine/latest/google.cloud.discoveryengine_v1.types.SearchResponse
+#
+# Hint 1: Return a collection of objects with the fields: title, snippet, and url
+# Hint 2: To enumerate the results return in the response use the loop: for result in response.results
+# Hint 3: In the loop, the following snippets will retrive the required data:
+#    result.document.derived_struct_data["htmlTitle"]
+#    result.document.derived_struct_data["snippets"][0]["htmlSnippet"]
+#    result.document.derived_struct_data["snippets"][0]["htmlSnippet"]
+#    
+####################################################################################
 def format_response(response):
     results = []
     for result in response.results:
@@ -133,13 +156,6 @@ def format_response(response):
         results.append(entry)
     
     return results
-
-
-        
-        
-        
-
-    return tmp
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=int(os.environ.get('PORT', 8080)))
