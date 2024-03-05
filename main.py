@@ -35,13 +35,6 @@ with open('config.yaml') as f:
 # Read application variables from the config fle
 TITLE = get_config_value(config, 'app', 'title', 'Ask Google')
 SUBTITLE = get_config_value(config, 'app', 'subtitle', 'Your friendly Bot')
-CONTEXT = get_config_value(config, 'palm', 'context',
-                           'You are a bot who can answer all sorts of questions')
-BOTNAME = get_config_value(config, 'palm', 'botname', 'Google')
-TEMPERATURE = get_config_value(config, 'palm', 'temperature', 0.8)
-MAX_OUTPUT_TOKENS = get_config_value(config, 'palm', 'max_output_tokens', 256)
-TOP_P = get_config_value(config, 'palm', 'top_p', 0.8)
-TOP_K = get_config_value(config, 'palm', 'top_k', 40)
 
 
 # The Home page route
@@ -68,7 +61,7 @@ def main():
         
     # Display the home page with the required variables set
     model = {"title": TITLE, "subtitle": SUBTITLE,
-             "botname": BOTNAME, "input": search_query, 
+             "input": search_query, 
              "responses": responses}
     return render_template('index.html', model=model)
 
