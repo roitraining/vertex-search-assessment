@@ -85,51 +85,8 @@ def search_data_store(
     search_query: str,
 ) -> List[discoveryengine.SearchResponse]:
 
-    client_options = (
-        ClientOptions(api_endpoint=f"{location}-discoveryengine.googleapis.com")
-        if location != "global"
-        else None
-    )
-
-    # Create a client
-    client = discoveryengine.SearchServiceClient(client_options=client_options)
-
-    serving_config = client.serving_config_path(
-        project=project_id,
-        location=location,
-        data_store=data_store_id,
-        serving_config="default_config",
-    )
-
-    content_search_spec = discoveryengine.SearchRequest.ContentSearchSpec(
-        snippet_spec=discoveryengine.SearchRequest.ContentSearchSpec.SnippetSpec(
-            return_snippet=True
-        ),
-        summary_spec=discoveryengine.SearchRequest.ContentSearchSpec.SummarySpec(
-            summary_result_count=5,
-            include_citations=True,
-            ignore_adversarial_query=True,
-            ignore_non_summary_seeking_query=True,
-        ),
-    )
-
-    request = discoveryengine.SearchRequest(
-        serving_config=serving_config,
-        query=search_query,
-        page_size=10,
-        content_search_spec=content_search_spec,
-        query_expansion_spec=discoveryengine.SearchRequest.QueryExpansionSpec(
-            condition=discoveryengine.SearchRequest.QueryExpansionSpec.Condition.AUTO,
-        ),
-        spell_correction_spec=discoveryengine.SearchRequest.SpellCorrectionSpec(
-            mode=discoveryengine.SearchRequest.SpellCorrectionSpec.Mode.AUTO
-        ),
-    )
-
-    response = client.search(request)
-    #print(response)
-
-    return response
+    # See the docs to implement this search function
+    return []
 
 
 ####################################################################################
@@ -147,14 +104,17 @@ def search_data_store(
 ####################################################################################
 def format_response(response):
     results = []
-    for result in response.results:
-        entry = {
-            "title": result.document.derived_struct_data["htmlTitle"], 
-            "snippet": result.document.derived_struct_data["snippets"][0]["htmlSnippet"],
-            "url": result.document.derived_struct_data["formattedUrl"]
-        }
-        results.append(entry)
+
+    # Implement a loop below to return a collection of 
+    # objects with title, snippet, and url properties
+    # some dummy code is shown below
     
+    element = {
+        "title": "Test Title",
+        "snippet": "This is a snippet",
+        "url": "https://www.google.com"
+    }
+    results.append(element)
     return results
 
 if __name__ == '__main__':
