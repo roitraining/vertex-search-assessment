@@ -92,7 +92,7 @@ def search_data_store(
 # Hint 3: In the loop, the following snippets will retrive the required data:
 #    result.document.derived_struct_data["htmlTitle"]
 #    result.document.derived_struct_data["snippets"][0]["htmlSnippet"]
-#    result.document.derived_struct_data["snippets"][0]["htmlSnippet"]
+#    result.document.derived_struct_data["formattedUrl"]
 #    
 ####################################################################################
 def format_response(response):
